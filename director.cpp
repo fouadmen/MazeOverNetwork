@@ -10,15 +10,22 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 
-#define PORT 9091
-
-int director_socket = 0; 
+#define PORT 9090
+#define DATASIZE sizeof(struct data)
 
 using namespace std;
 
+struct data {
+    char command; 
+    char origin; 
+    char dest;
+};
+
+int director_socket = 0; 
+
 void socket_config(){
     struct sockaddr_in serv_addr; 
-    // char hello[1]; feedback 
+    //  feedback 
     if ((director_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0) 
     { 
         printf("\n Socket creation error \n"); 
@@ -41,36 +48,21 @@ void socket_config(){
     } 
 }
 
-int _kbhit() {
-    static const int STDIN = 0;
-    static bool initialized = false;
 
-    if (! initialized) {
-        termios term;
-        tcgetattr(STDIN, &term);
-        term.c_lflag &= ~ICANON;
-        tcsetattr(STDIN, TCSANOW, &term);
-        setbuf(stdin, NULL);
-        initialized = true;
-    }
-
-    int bytesWaiting;
-    ioctl(STDIN, FIONREAD, &bytesWaiting);
-    return bytesWaiting;
-}
 
 int main(int argc, char const *argv[]) 
 { 
-    char command[1];
+    struct data _data;
     socket_config();
+    _data.origin = 'd'; //director
+    _data.dest = 'm'; //maze
 
     while (true)
     {
-        if(_kbhit()){
-            cin>>command;
-            send(director_socket , command , strlen(command) , 0 ); 
-            system("clear");
-        }
+        cin>>_data.command;
+        char cmd[DATASIZE];
+        memcpy((void*)cmd, (void*)&_data, DATASIZE);
+        write(director_socket , cmd , DATASIZE);   
     }
     
     return 0; 
