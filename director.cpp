@@ -11,15 +11,8 @@
 #include <sys/ioctl.h>
 
 #define PORT 9090
-#define DATASIZE sizeof(struct data)
 
 using namespace std;
-
-struct data {
-    char command; 
-    char origin; 
-    char dest;
-};
 
 int director_socket = 0; 
 
@@ -52,17 +45,12 @@ void socket_config(){
 
 int main(int argc, char const *argv[]) 
 { 
-    struct data _data;
+    char command;
     socket_config();
-    _data.origin = 'd'; //director
-    _data.dest = 'm'; //maze
-
     while (true)
     {
-        cin>>_data.command;
-        char cmd[DATASIZE];
-        memcpy((void*)cmd, (void*)&_data, DATASIZE);
-        write(director_socket , cmd , DATASIZE);   
+        cin>> command;
+        send(director_socket , &command , sizeof(char), 0);   
     }
     
     return 0; 

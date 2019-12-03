@@ -12,6 +12,12 @@
 using namespace std;
 int currentClient;
 
+struct data {
+    char command; 
+    char origin; 
+    char dest;
+};
+
 class network_simulator
 {
     private:
@@ -90,7 +96,7 @@ class network_simulator
                     close(networksocket_fd);
                 }
                 
-                for (int i = 0; i < maxfd; i++) {
+                for (int i = 0; i <= maxfd; i++) {
                     if (FD_ISSET(i, &clientfds)) { 
                         if (networksocket_fd == i) {
                             handleNewConnection();
@@ -140,12 +146,18 @@ class network_simulator
                 FD_CLR(fd, &networkfds); 
                 return;
             }
-            messageCallback(fd,input_buffer);
+            //messageCallback(fd,input_buffer);
+            broadcastMessage(fd, input_buffer);
             bzero(&input_buffer,INPUT_BUFFER_SIZE);
         }
 
         void broadcastMessage(int fd, char *buffer){
-            for()
+            cout<<"broadcasting Message\n";
+            for (int i = 0; i < maxfd; i++) {
+                    if (networksocket_fd != i && fd != i) {
+                        send(i , buffer , sizeof(struct data), 0);
+                    } 
+            }
         }
 
         void onMessage(void (*cb)(uint16_t fd, char *buffer)){
@@ -162,11 +174,7 @@ class network_simulator
 
 };
 
-struct data {
-    char command; 
-    char origin; 
-    char dest;
-};
+
 
 void onConnectCb(uint16_t fd){
     cout<<"New client has been added\n";
